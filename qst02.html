@@ -99,6 +99,13 @@
                 width: 60px;
                 /* order: 4; */
             }
+
+            .hidden {
+                display: none;
+            }
+            .optimal {
+                color: green;
+            }
         </style>
     </head>
     <body>
@@ -115,17 +122,21 @@
             </ul>
         </div>
         <p>Número de movimentos: <span id="counter">0</span> / <span id="max">31</span></p>
+        <p id="victory" class="hidden">Parabens! Você venceu!</p>
         <button type="button" id="reset">Resetar</button>
         <script type="text/javascript">
             var numTowers = 3;
             var numDisks = 5;
 
             var counter = 0;
+            var maxCounter = (Math.pow(2, numDisks) - 1);
+
             var counterElem = document.getElementById("counter");
             var maxElem = document.getElementById("max");
-            maxElem.textContent = (Math.pow(2, numDisks) - 1);
+            maxElem.textContent = maxCounter;
             var resetElem = document.getElementById("reset");
             resetElem.addEventListener("click", reset);
+            var victoryElem = document.getElementById("victory");
 
             var selectedTower = null;
 
@@ -174,10 +185,15 @@
 
                 counter = 0;
                 counterElem.textContent = counter;
+                counterElem.classList.remove("optimal");
+                victoryElem.classList.add("hidden");
             }
             reset();
 
             function moveDisk(t1, t2) {
+                if (t1 == t2)
+                    return;
+
                 if (gameData[t1].length <= 0)
                     return;
 
@@ -194,6 +210,18 @@
                 var towerElem = towers[t2];
 
                 towerElem.appendChild(diskElem);
+
+                counterElem.classList.remove("optimal");
+                if (gameData[numTowers - 1].length == numDisks) {
+                    victoryElem.classList.remove("hidden");
+                    if (counter == maxCounter)
+                    {
+                        counterElem.classList.add("optimal");
+                    }
+                }
+                else {
+                    victoryElem.classList.add("hidden");
+                }
             }
         </script>
     </body>
