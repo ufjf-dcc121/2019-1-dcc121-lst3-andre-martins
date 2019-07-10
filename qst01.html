@@ -100,20 +100,13 @@
         <table id="game">
         </table>
         <p id="state">Nenhum vencedor</p>
+        <button type="button" id="reset">Resetar</button>
         <script type="text/javascript">
             var gameElem = document.getElementById("game");
             var stateElem = document.getElementById("state");
+            var resetElem = document.getElementById("reset");
 
-            var gameData = {
-                winCondition: 0,
-                winPosition: null,
-                winner: 0,
-                board: [
-                    [1, 0, 0],
-                    [0, 1, 0],
-                    [1, 2, 2],
-                ]
-            }
+            var gameData;
 
             function makeValueSetter(tableElem, resultsElem, data, x, y) {
                 return function() {
@@ -233,7 +226,22 @@
                 }
             }
 
-            drawBoard(gameElem, stateElem, gameData);
+            function reset() {
+                gameData = {
+                    winCondition: 0,
+                    winPosition: null,
+                    winner: 0,
+                    board: [
+                        [0, 0, 0],
+                        [0, 0, 0],
+                        [0, 0, 0],
+                    ]
+                };
+                drawBoard(gameElem, stateElem, gameData);
+            }
+            resetElem.addEventListener("click", reset)
+
+            reset();
         </script>
     </body>
 </html>
