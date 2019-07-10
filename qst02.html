@@ -94,5 +94,27 @@
             </ul><ul id="tower-3" class="tower">
             </ul>
         </div>
+        <script type="text/javascript">
+            var numTowers = 3;
+            var numDisks = 5;
+
+            var towers = [];
+            for (var i = 1; i <= numTowers; ++i) {
+                towers.push(document.getElementById("tower-" + i));
+            }
+
+            var disks = [];
+            for (var i = 1; i <= numDisks; ++i) {
+                disks.push(document.getElementById("disk-" + i));
+            }
+
+            gameData = [];
+            for (var i = 1; i <= numTowers; ++i) {
+                gameData.push([]);
+            }
+            for (var i = 1; i <= numDisks; ++i) {
+                gameData[0].push(i);
+            }
+        </script>
     </body>
 </html>
