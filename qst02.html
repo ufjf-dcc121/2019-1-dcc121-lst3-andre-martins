@@ -45,6 +45,20 @@
                 margin: auto;
                 background-color: #6d4c41;
             }
+            .tower.selected .disk {
+                filter: brightness(0.7);
+            }
+            .tower.selected .disk:last-child {
+                filter: brightness(0.7) opacity(0.7);
+            }
+            .tower.selected::before {
+                content: "";
+                position: absolute;
+                bottom: -30px;
+                border: 50px solid transparent;
+                border-bottom: 25px solid #2f1f1c;
+                z-index: 1;
+            }
 
             .disk {
                 display: inline-block;
@@ -54,57 +68,78 @@
                 z-index: 1;
             }
 
-            #disk-1 {
+            #disk-0 {
                 background-color: #d22b2b;
                 width: 180px;
+                /* order: 0; */
+            }
+            #disk-1 {
+                background-color: #ffa000;
+                width: 150px;
                 /* order: 1; */
             }
             #disk-2 {
-                background-color: #ffa000;
-                width: 150px;
+                background-color: #6bca20;
+                width: 120px;
                 /* order: 2; */
             }
             #disk-3 {
-                background-color: #6bca20;
-                width: 120px;
+                background-color: #2f95e8;
+                width: 90px;
                 /* order: 3; */
             }
             #disk-4 {
-                background-color: #2f95e8;
-                width: 90px;
-                /* order: 4; */
-            }
-            #disk-5 {
                 background-color: #af2bd2;
                 width: 60px;
-                /* order: 5; */
+                /* order: 4; */
             }
         </style>
     </head>
     <body>
         <h1>Torres de Hanoi</h1>
         <div class="base">
-            <ul id="tower-1" class="tower">
+            <ul id="tower-0" class="tower">
+                <li id="disk-0" class="disk"></li>
                 <li id="disk-1" class="disk"></li>
                 <li id="disk-2" class="disk"></li>
                 <li id="disk-3" class="disk"></li>
                 <li id="disk-4" class="disk"></li>
-                <li id="disk-5" class="disk"></li>
+            </ul><ul id="tower-1" class="tower">
             </ul><ul id="tower-2" class="tower">
-            </ul><ul id="tower-3" class="tower">
             </ul>
         </div>
         <script type="text/javascript">
             var numTowers = 3;
             var numDisks = 5;
 
+            var selectedTower = null;
+
             var towers = [];
-            for (var i = 1; i <= numTowers; ++i) {
-                towers.push(document.getElementById("tower-" + i));
+
+            function towerSelector(tower) {
+                return function() {
+                    if (selectedTower == null) {
+                        selectedTower = tower;
+                        towers[selectedTower].classList.add("selected");
+                    }
+                    else {
+                        moveDisk(selectedTower, tower);
+                        towers[selectedTower].classList.remove("selected");
+                        selectedTower = null;
+                    }
+                }
+            }
+
+            for (var i = 0; i < numTowers; ++i) {
+                var towerElem = document.getElementById("tower-" + i);
+                towerElem.addEventListener("click", towerSelector(i));
+
+                towers.push(towerElem);
+
             }
 
             var disks = [];
-            for (var i = 1; i <= numDisks; ++i) {
+            for (var i = 0; i < numDisks; ++i) {
                 disks.push(document.getElementById("disk-" + i));
             }
 
@@ -120,18 +155,14 @@
                 if (gameData[t1].length <= 0)
                     return;
 
-                disk = gameData[t1].pop();
+                var disk = gameData[t1].pop();
                 gameData[t2].push(disk);
 
-                diskElem = disks[disk];
-                towerElem = towers[t2];
+                var diskElem = disks[disk];
+                var towerElem = towers[t2];
 
                 towerElem.appendChild(diskElem);
             }
-
-            setInterval(function() {
-                moveDisk(Math.floor(Math.random() * 3), Math.floor(Math.random() * 3));
-            }, 50)
         </script>
     </body>
 </html>
