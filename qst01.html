@@ -9,5 +9,30 @@
         <table id="game">
         </table>
         <p id="state">Nenhum vencedor</p>
+        <script type="text/javascript">
+            var gameElem = document.getElementById("game");
+
+            function drawBoard(elem, data) {
+                while (elem.firstChildren)
+                    elem.removeChild(elem.firstChildren);
+
+                for (var y = 0; y < 3; ++y)
+                {
+                    rowElem = document.createElement("tr");
+
+                    for (var x = 0; x < 3; ++x)
+                    {
+                        cellElem = document.createElement("td");
+                        cellElem.textContent = "X";
+
+                        rowElem.appendChild(cellElem);
+                    }
+
+                    elem.appendChild(rowElem);
+                }
+            }
+
+            drawBoard(gameElem, []);
+        </script>
     </body>
 </html>
