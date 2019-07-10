@@ -22,6 +22,7 @@
                 cursor: default;
                 user-select: none;
             }
+
             #game tr:first-child td {
                 border-top: 0;
             }
@@ -33,6 +34,13 @@
             }
             #game tr td:last-child {
                 border-right: 0;
+            }
+
+            #game td.winner-x {
+                color: red;
+            }
+            #game td.winner-o {
+                color: blue;
             }
         </style>
     </head>
@@ -84,14 +92,15 @@
 
                 data.winPosition = null;
                 data.winner = 0;
+
                 for (var i = 0; i < conditions.length; ++i) {
                     var v0 = conditions[i][0];
                     var v1 = conditions[i][1];
                     var v2 = conditions[i][2];
 
-                    if ((board[v0.x][v0.y] != 0) && (board[v0.x][v0.y] == board[v1.x][v1.y]) && (board[v0.x][v0.y] == board[v2.x][v2.y])) {
+                    if ((board[v0.y][v0.x] != 0) && (board[v0.y][v0.x] == board[v1.y][v1.x]) && (board[v0.y][v0.x] == board[v2.y][v2.x])) {
                         data.winPosition = [v0.x + v0.y*3, v1.x + v1.y*3, v2.x + v2.y*3];
-                        data.winner = board[v0.x][v0.y];
+                        data.winner = board[v0.y][v0.x];
                         break;
                     }
                 }
@@ -127,6 +136,14 @@
                             case 2:
                                 cellElem.innerHTML = "&#x2573;";
                                 break;
+                        }
+
+                        if (data.winPosition && data.winPosition.indexOf(x + y*3) > -1)
+                        {
+                            if (data.winner == 1)
+                                cellElem.classList.add("winner-x")
+                            else if (data.winner == 2)
+                                cellElem.classList.add("winner-o")
                         }
 
                         cellElem.addEventListener("click", makeValueSetter(tableElem, resultsElem, data, x, y));
