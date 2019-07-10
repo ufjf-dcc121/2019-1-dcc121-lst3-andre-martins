@@ -114,9 +114,15 @@
             </ul><ul id="tower-2" class="tower">
             </ul>
         </div>
+        <p>Número de movimentos: <span id="counter">0</span> / <span id="max">31</span></p>
         <script type="text/javascript">
             var numTowers = 3;
             var numDisks = 5;
+
+            var counter = 0;
+            var counterElem = document.getElementById("counter");
+            var maxElem = document.getElementById("max");
+            maxElem.textContent = (Math.pow(2, numDisks) - 1);
 
             var selectedTower = null;
 
@@ -163,6 +169,9 @@
 
                 if (gameData[t2].length > 0 && (gameData[t1][gameData[t1].length - 1] < gameData[t2][gameData[t2].length - 1]))
                     return;
+
+                counter++;
+                counterElem.textContent = counter;
 
                 var disk = gameData[t1].pop();
                 gameData[t2].push(disk);
