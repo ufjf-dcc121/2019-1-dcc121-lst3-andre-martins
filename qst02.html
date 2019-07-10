@@ -33,8 +33,13 @@
                 display: flex;
                 flex-direction: column-reverse;
                 align-items: center;
+                z-index: 1;
             }
-            .tower::after {
+            .tower:hover {
+                filter: brightness(1.3);
+            }
+
+            .tower::before {
                 content: "";
                 position: absolute;
                 bottom: 0;
@@ -45,19 +50,20 @@
                 margin: auto;
                 background-color: #6d4c41;
             }
-            .tower.selected .disk {
-                filter: brightness(0.7);
-            }
-            .tower.selected .disk:last-child {
-                filter: brightness(0.7) opacity(0.7);
-            }
-            .tower.selected::before {
+
+            .tower.selected::after {
                 content: "";
                 position: absolute;
                 bottom: -30px;
                 border: 50px solid transparent;
                 border-bottom: 25px solid #2f1f1c;
-                z-index: 1;
+                z-index: 2;
+            }
+            .tower.selected .disk {
+                filter: brightness(0.7);
+            }
+            .tower.selected .disk:last-child {
+                filter: brightness(0.7) opacity(0.7);
             }
 
             .disk {
@@ -153,6 +159,9 @@
 
             function moveDisk(t1, t2) {
                 if (gameData[t1].length <= 0)
+                    return;
+
+                if (gameData[t2].length > 0 && (gameData[t1][gameData[t1].length - 1] < gameData[t2][gameData[t2].length - 1]))
                     return;
 
                 var disk = gameData[t1].pop();
