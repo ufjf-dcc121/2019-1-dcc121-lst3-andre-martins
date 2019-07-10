@@ -50,9 +50,18 @@
                 [1, 2, 2],
             ]
 
+            function makeValueSetter(elem, data, x, y) {
+                return function() {
+                    data[y][x] = (data[y][x] + 1) % 3;
+                    drawBoard(elem, data);
+                }
+            }
+
             function drawBoard(elem, data) {
-                while (elem.firstChildren)
-                    elem.removeChild(elem.firstChildren);
+                while (elem.firstChild)
+                {
+                    elem.removeChild(elem.firstChild);
+                }
 
                 for (var y = 0; y < 3; ++y)
                 {
@@ -72,6 +81,8 @@
                                 cellElem.innerHTML = "&#x2573;";
                                 break;
                         }
+
+                        cellElem.addEventListener("click", makeValueSetter(elem, data, x, y));
 
                         rowElem.appendChild(cellElem);
                     }
