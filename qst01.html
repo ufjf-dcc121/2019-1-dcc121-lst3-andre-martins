@@ -44,6 +44,12 @@
         <script type="text/javascript">
             var gameElem = document.getElementById("game");
 
+            var gameData = [
+                [1, 0, 0],
+                [0, 1, 0],
+                [1, 2, 2],
+            ]
+
             function drawBoard(elem, data) {
                 while (elem.firstChildren)
                     elem.removeChild(elem.firstChildren);
@@ -55,7 +61,17 @@
                     for (var x = 0; x < 3; ++x)
                     {
                         cellElem = document.createElement("td");
-                        cellElem.innerHTML = "&#x2573;";
+                        switch (gameData[y][x]) {
+                            case 0:
+                                cellElem.innerHTML = "&nbsp;";
+                                break;
+                            case 1:
+                                cellElem.innerHTML = "&#x25EF;";
+                                break;
+                            case 2:
+                                cellElem.innerHTML = "&#x2573;";
+                                break;
+                        }
 
                         rowElem.appendChild(cellElem);
                     }
@@ -64,7 +80,7 @@
                 }
             }
 
-            drawBoard(gameElem, []);
+            drawBoard(gameElem, gameData);
         </script>
     </body>
 </html>
