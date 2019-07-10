@@ -6,8 +6,55 @@
         <style media="screen">
             #game {
                 border-collapse: collapse;
+                position: relative;
             }
+
+            #game::after {
+                content: "";
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                top: 0;
+                left: 0;
+                transform: scale(0, 0);
+                pointer-events: none;
+            }
+
+            #game.winner-x::after {
+                background-color: red;
+            }
+            #game.winner-o::after {
+                background-color: blue;
+            }
+
+            #game.condition-0::after {
+                transform: translate(96px, 32px) rotate(0deg) scale(172, 3);
+            }
+            #game.condition-1::after {
+                transform: translate(96px, 96px) rotate(0deg) scale(172, 3);
+            }
+            #game.condition-2::after {
+                transform: translate(96px, 160px) rotate(0deg) scale(172, 3);
+            }
+            #game.condition-3::after {
+                transform: translate(32px, 96px) rotate(0deg) scale(3, 172);
+            }
+            #game.condition-4::after {
+                transform: translate(96px, 96px) rotate(0deg) scale(3, 172);
+            }
+            #game.condition-5::after {
+                transform: translate(160px, 96px) rotate(0deg) scale(3, 172);
+            }
+            #game.condition-6::after {
+                transform: translate(96px, 96px) rotate(-45deg) scale(3, 231.529);
+            }
+            #game.condition-7::after {
+                transform: translate(96px, 96px) rotate(45deg) scale(3, 231.529);
+            }
+
             #game tr td {
+                box-sizing: border-box;
+                padding: 0;
                 width: 64px;
                 height: 64px;
                 text-align: center;
@@ -54,6 +101,7 @@
             var stateElem = document.getElementById("state");
 
             var gameData = {
+                winCondition: 0,
                 winPosition: null,
                 winner: 0,
                 board: [
@@ -76,14 +124,14 @@
 
                 var conditions = [
                     // Horizontal
-                    [{x: 0, y: 0}, {x: 0, y: 1}, {x: 0, y: 2}],
-                    [{x: 1, y: 0}, {x: 1, y: 1}, {x: 1, y: 2}],
-                    [{x: 2, y: 0}, {x: 2, y: 1}, {x: 2, y: 2}],
-
-                    // Vertical
                     [{x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}],
                     [{x: 0, y: 1}, {x: 1, y: 1}, {x: 2, y: 1}],
                     [{x: 0, y: 2}, {x: 1, y: 2}, {x: 2, y: 2}],
+
+                    // Vertical
+                    [{x: 0, y: 0}, {x: 0, y: 1}, {x: 0, y: 2}],
+                    [{x: 1, y: 0}, {x: 1, y: 1}, {x: 1, y: 2}],
+                    [{x: 2, y: 0}, {x: 2, y: 1}, {x: 2, y: 2}],
 
                     // Diagonal
                     [{x: 0, y: 0}, {x: 1, y: 1}, {x: 2, y: 2}],
@@ -99,6 +147,7 @@
                     var v2 = conditions[i][2];
 
                     if ((board[v0.y][v0.x] != 0) && (board[v0.y][v0.x] == board[v1.y][v1.x]) && (board[v0.y][v0.x] == board[v2.y][v2.x])) {
+                        data.winCondition = i;
                         data.winPosition = [v0.x + v0.y*3, v1.x + v1.y*3, v2.x + v2.y*3];
                         data.winner = board[v0.y][v0.x];
                         break;
@@ -118,6 +167,16 @@
             function drawBoard(tableElem, resultsElem, data) {
                 while (tableElem.firstChild)
                     tableElem.removeChild(tableElem.firstChild);
+
+                if (data.winner == 0) {
+                    tableElem.classList = "";
+                }
+                else if (data.winner == 1) {
+                    tableElem.classList = "winner-x condition-" + data.winCondition;
+                }
+                else if (data.winner == 2) {
+                    tableElem.classList = "winner-o condition-" + data.winCondition;
+                }
 
                 for (var y = 0; y < 3; ++y)
                 {
