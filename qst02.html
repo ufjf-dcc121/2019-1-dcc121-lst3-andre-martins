@@ -38,6 +38,9 @@
             .tower:hover {
                 filter: brightness(1.3);
             }
+            .tower.disabled:hover {
+                filter: brightness(1);
+            }
 
             .tower::before {
                 content: "";
@@ -106,6 +109,10 @@
             .optimal {
                 color: green;
             }
+
+            .disabled {
+                cursor: not-allowed;
+            }
         </style>
     </head>
     <body>
@@ -145,13 +152,30 @@
             function towerSelector(tower) {
                 return function() {
                     if (selectedTower == null) {
+                        if (gameData[tower].length <= 0)
+                            return;
+
                         selectedTower = tower;
                         towers[selectedTower].classList.add("selected");
+
+                        var selectedDisk = gameData[selectedTower][gameData[selectedTower].length - 1]
+                        for (var i = 0; i < numTowers; ++i) {
+                            if (gameData[i].length > 0 && gameData[i][gameData[i].length - 1] > selectedDisk) {
+                                towers[i].classList.add("disabled");
+                            }
+                            else {
+                                towers[i].classList.remove("disabled");
+                            }
+                        }
                     }
                     else {
                         moveDisk(selectedTower, tower);
                         towers[selectedTower].classList.remove("selected");
                         selectedTower = null;
+
+                        for (var i = 0; i < numTowers; ++i) {
+                            towers[i].classList.remove("disabled");
+                        }
                     }
                 }
             }
