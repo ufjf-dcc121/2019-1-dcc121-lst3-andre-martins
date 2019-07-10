@@ -57,27 +57,27 @@
             #disk-1 {
                 background-color: #d22b2b;
                 width: 180px;
-                order: 1;
+                /* order: 1; */
             }
             #disk-2 {
                 background-color: #ffa000;
                 width: 150px;
-                order: 2;
+                /* order: 2; */
             }
             #disk-3 {
                 background-color: #6bca20;
                 width: 120px;
-                order: 3;
+                /* order: 3; */
             }
             #disk-4 {
                 background-color: #2f95e8;
                 width: 90px;
-                order: 4;
+                /* order: 4; */
             }
             #disk-5 {
                 background-color: #af2bd2;
                 width: 60px;
-                order: 5;
+                /* order: 5; */
             }
         </style>
     </head>
@@ -109,12 +109,29 @@
             }
 
             gameData = [];
-            for (var i = 1; i <= numTowers; ++i) {
+            for (var i = 0; i < numTowers; ++i) {
                 gameData.push([]);
             }
-            for (var i = 1; i <= numDisks; ++i) {
+            for (var i = 0; i < numDisks; ++i) {
                 gameData[0].push(i);
             }
+
+            function moveDisk(t1, t2) {
+                if (gameData[t1].length <= 0)
+                    return;
+
+                disk = gameData[t1].pop();
+                gameData[t2].push(disk);
+
+                diskElem = disks[disk];
+                towerElem = towers[t2];
+
+                towerElem.appendChild(diskElem);
+            }
+
+            setInterval(function() {
+                moveDisk(Math.floor(Math.random() * 3), Math.floor(Math.random() * 3));
+            }, 50)
         </script>
     </body>
 </html>
