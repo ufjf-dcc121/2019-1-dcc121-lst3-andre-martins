@@ -115,6 +115,7 @@
             </ul>
         </div>
         <p>Número de movimentos: <span id="counter">0</span> / <span id="max">31</span></p>
+        <button type="button" id="reset">Resetar</button>
         <script type="text/javascript">
             var numTowers = 3;
             var numDisks = 5;
@@ -123,6 +124,8 @@
             var counterElem = document.getElementById("counter");
             var maxElem = document.getElementById("max");
             maxElem.textContent = (Math.pow(2, numDisks) - 1);
+            var resetElem = document.getElementById("reset");
+            resetElem.addEventListener("click", reset);
 
             var selectedTower = null;
 
@@ -155,13 +158,24 @@
                 disks.push(document.getElementById("disk-" + i));
             }
 
-            gameData = [];
-            for (var i = 0; i < numTowers; ++i) {
-                gameData.push([]);
+            var gameData;
+            function reset() {
+                gameData = [];
+                for (var i = 0; i < numTowers; ++i) {
+                    gameData.push([]);
+                }
+                for (var i = 0; i < numDisks; ++i) {
+                    gameData[0].push(i);
+                }
+
+                for (var i = 0; i < disks.length; ++i) {
+                    towers[0].appendChild(disks[i]);
+                }
+
+                counter = 0;
+                counterElem.textContent = counter;
             }
-            for (var i = 0; i < numDisks; ++i) {
-                gameData[0].push(i);
-            }
+            reset();
 
             function moveDisk(t1, t2) {
                 if (gameData[t1].length <= 0)
