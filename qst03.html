@@ -3,6 +3,22 @@
     <head>
         <meta charset="utf-8">
         <title>Passeio do cavalo</title>
+        <style media="screen">
+            #game {
+                border-collapse: collapse;
+            }
+
+            #game tr td {
+                width: 60px;
+                height: 60px;
+            }
+            #game tr td.even {
+                background-color: #fad49e;
+            }
+            #game tr td.odd {
+                background-color: #e89c30;
+            }
+        </style>
     </head>
     <body>
         <h1>Passeio do cavalo</h1>
@@ -18,6 +34,11 @@
 
                 for (var x = 0; x < boardSize; ++x) {
                     var cellElem = document.createElement("td");
+
+                    if ((x + y) % 2 == 0)
+                        cellElem.classList.add("even");
+                    else
+                        cellElem.classList.add("odd");
 
                     rowElem.appendChild(cellElem);
                 }
