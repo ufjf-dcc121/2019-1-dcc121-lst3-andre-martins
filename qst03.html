@@ -8,5 +8,22 @@
         <h1>Passeio do cavalo</h1>
         <table id="game">
         </table>
+        <script type="text/javascript">
+            var gameElem = document.getElementById("game");
+
+            boardSize = 8;
+
+            for (var y = 0; y < boardSize; ++y) {
+                var rowElem = document.createElement("tr");
+
+                for (var x = 0; x < boardSize; ++x) {
+                    var cellElem = document.createElement("td");
+
+                    rowElem.appendChild(cellElem);
+                }
+
+                gameElem.appendChild(rowElem);
+            }
+        </script>
     </body>
 </html>
