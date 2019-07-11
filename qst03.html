@@ -5,46 +5,110 @@
         <title>Passeio do cavalo</title>
         <style media="screen">
             #game {
+                position: relative;
+                display: inline-block;
+            }
+
+            #horse {
+                position: absolute;
+                width: 30px;
+                height: 30px;
+                background-color: #ce3d3d;
+            }
+
+            #path-svg {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                width: 100%;
+                height: 100%;
+            }
+            #path {
+                stroke: #710d0d;
+            }
+
+            #board {
                 border-collapse: collapse;
             }
 
-            #game tr td {
+            #board tr td {
                 width: 60px;
                 height: 60px;
+                padding: 0;
             }
-            #game tr td.even {
+            #board tr td.even {
                 background-color: #fad49e;
             }
-            #game tr td.odd {
+            #board tr td.odd {
                 background-color: #e89c30;
             }
         </style>
     </head>
     <body>
         <h1>Passeio do cavalo</h1>
-        <table id="game">
-        </table>
+        <div id="game">
+            <div id="horse"></div>
+            <svg id="path-svg">
+                <path id="path" d="" fill="none" stroke="black" stroke-width=".08"></path>
+            </svg>
+            <table id="board">
+            </table>
+        </div>
         <script type="text/javascript">
-            var gameElem = document.getElementById("game");
+            var horseElem = document.getElementById("horse");
+            var pathSVGElem = document.getElementById("path-svg");
+            var pathElem = document.getElementById("path");
+            var boardElem = document.getElementById("board");
 
-            boardSize = 8;
+            var horsePath = [
+                {x: 0, y: 0},
+                {x: 1, y: 2},
+                {x: 0, y: 4},
+                {x: 2, y: 3},
+                {x: 1, y: 1},
+                {x: 3, y: 2},
+                {x: 4, y: 4},
+            ]
 
-            for (var y = 0; y < boardSize; ++y) {
-                var rowElem = document.createElement("tr");
+            function drawBoard(elem, size) {
+                for (var y = 0; y < size; ++y) {
+                    var rowElem = document.createElement("tr");
 
-                for (var x = 0; x < boardSize; ++x) {
-                    var cellElem = document.createElement("td");
+                    for (var x = 0; x < size; ++x) {
+                        var cellElem = document.createElement("td");
 
-                    if ((x + y) % 2 == 0)
-                        cellElem.classList.add("even");
-                    else
-                        cellElem.classList.add("odd");
+                        if ((x + y) % 2 == 0)
+                            cellElem.classList.add("even");
+                        else
+                            cellElem.classList.add("odd");
 
-                    rowElem.appendChild(cellElem);
+                        rowElem.appendChild(cellElem);
+                    }
+
+                    elem.appendChild(rowElem);
                 }
-
-                gameElem.appendChild(rowElem);
             }
+            function drawPath(svg, path, size) {
+                var cellSize = 60;
+                var halfHorseSize = 15;
+
+                svg.setAttribute("viewBox", -0.5 + " " + -0.5 + " " + size + " " + size)
+
+                var horsePathString = "M" + horsePath[0].x + "," + horsePath[0].y;
+                for (var i = 1; i < horsePath.length; ++i) {
+                    horsePathString += "L" + horsePath[i].x + "," + horsePath[i].y;
+                }
+                path.setAttribute("d", horsePathString);
+
+                horseElem.style.left = ((horsePath[horsePath.length - 1].x + 0.5) * cellSize - halfHorseSize) + "px";
+                horseElem.style.top = ((horsePath[horsePath.length - 1].y + 0.5) * cellSize - halfHorseSize) + "px";
+            }
+
+            var boardSize = 8;
+            drawBoard(boardElem, boardSize);
+            drawPath(pathSVGElem, pathElem, boardSize);
         </script>
     </body>
 </html>
