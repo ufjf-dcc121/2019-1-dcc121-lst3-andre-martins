@@ -48,6 +48,16 @@
             #board tr td.odd {
                 background-color: #e89c30;
             }
+            #board tr td.used.even {
+                background-color: #efefef;
+            }
+            #board tr td.used.odd {
+                background-color: #a2a2a2;
+            }
+
+            #board tr td.available {
+                background-color: #42a934;
+            }
 
             .hidden {
                 display: none;
@@ -65,32 +75,55 @@
             </table>
         </div>
         <script type="text/javascript">
+            const BOARD_SIZE = 8;
+
             var horseElem = document.getElementById("horse");
             var pathSVGElem = document.getElementById("path-svg");
             var pathElem = document.getElementById("path");
             var boardElem = document.getElementById("board");
 
             var horsePath = [];
+            var availableMovements = getValidMovements(horsePath);
 
-            function horseMover(cell, svg, path, horsePath, pos) {
+            function getCell(board, pos) {
+                row = board.children[pos.y];
+                cell = row.children[pos.x];
+
+                return cell;
+            }
+
+            function horseMover(board, cell, svg, path, horsePath, availableMovements, pos) {
                 return function () {
                     if (!movementIsValid(horsePath, pos))
                         return;
 
+                    for (var i = 0; i < availableMovements.length; ++i) {
+                        var availableCell = getCell(board, availableMovements[i]);
+                        availableCell.classList.remove("available");
+                    }
+
                     horsePath.push(pos);
 
                     cell.textContent = horsePath.length;
+                    cell.classList.add("used");
+
+                    availableMovements = getValidMovements(horsePath);
+                    for (var i = 0; i < availableMovements.length; ++i) {
+                        var availableCell = getCell(board, availableMovements[i]);
+                        availableCell.classList.add("available");
+                    }
+
                     drawPath(svg, path, horsePath);
                 }
             }
 
-            function drawBoard(board, svg, path, size, horsePath) {
-                for (var y = 0; y < size; ++y) {
+            function drawBoard(board, svg, path, horsePath, availableMovements) {
+                for (var y = 0; y < BOARD_SIZE; ++y) {
                     var rowElem = document.createElement("tr");
 
-                    for (var x = 0; x < size; ++x) {
+                    for (var x = 0; x < BOARD_SIZE; ++x) {
                         var cellElem = document.createElement("td");
-                        cellElem.addEventListener("click", horseMover(cellElem, svg, path, horsePath, {x: x, y: y}));
+                        cellElem.addEventListener("click", horseMover(board, cellElem, svg, path, horsePath, availableMovements, {x: x, y: y}));
 
                         if ((x + y) % 2 == 0)
                             cellElem.classList.add("even");
@@ -102,7 +135,7 @@
 
                     board.appendChild(rowElem);
 
-                    svg.setAttribute("viewBox", -0.5 + " " + -0.5 + " " + size + " " + size)
+                    svg.setAttribute("viewBox", -0.5 + " " + -0.5 + " " + BOARD_SIZE + " " + BOARD_SIZE)
                 }
             }
             function drawPath(svg, path, horsePath) {
@@ -126,9 +159,55 @@
                 }
             }
 
+            function posComparator(newPos) {
+                return function (pos) {
+                    return (pos.x == newPos.x && pos.y == newPos.y);
+                }
+            }
+
+            function posChecker(horsePath) {
+                return function (pos) {
+                    return movementIsValid(horsePath, pos);
+                }
+            }
+
+            function getValidMovements(horsePath) {
+                if (horsePath.length <= 0) {
+                    var movements = [];
+                    for (var y = 0; y < BOARD_SIZE; ++y) {
+                        for (var x = 0; x < BOARD_SIZE; ++x) {
+                            movements.push({x: x, y: y});
+                        }
+                    }
+
+                    return movements;
+                }
+
+                var lastPos = horsePath[horsePath.length - 1];
+
+                var movements = [
+                    {x: lastPos.x - 1, y: lastPos.y - 2},
+                    {x: lastPos.x - 1, y: lastPos.y + 2},
+                    {x: lastPos.x + 1, y: lastPos.y - 2},
+                    {x: lastPos.x + 1, y: lastPos.y + 2},
+                    {x: lastPos.x - 2, y: lastPos.y - 1},
+                    {x: lastPos.x - 2, y: lastPos.y + 1},
+                    {x: lastPos.x + 2, y: lastPos.y - 1},
+                    {x: lastPos.x + 2, y: lastPos.y + 1},
+                ]
+
+                movements = movements.filter(posChecker(horsePath));
+
+                return movements;
+            }
+
             function movementIsValid(horsePath, newPos) {
                 if (horsePath.length <= 0)
                     return true;
+
+                if (newPos.x < 0 || newPos.x >= BOARD_SIZE ||
+                    newPos.y < 0 || newPos.y >= BOARD_SIZE)
+                    return false;
 
                 var lastPos = horsePath[horsePath.length - 1];
                 var dx = Math.abs(lastPos.x - newPos.x);
@@ -137,15 +216,14 @@
                 if (!((dx == 1 && dy == 2) || (dx == 2 && dy == 1)))
                     return false;
 
-                var checkPos = horsePath.find(function(pos) { return (pos.x == newPos.x && pos.y == newPos.y); })
+                var checkPos = horsePath.find(posComparator(newPos))
                 if (checkPos)
                     return false;
 
                 return true;
             }
 
-            var boardSize = 8;
-            drawBoard(boardElem, pathSVGElem, pathElem, boardSize, horsePath);
+            drawBoard(boardElem, pathSVGElem, pathElem, horsePath, availableMovements);
             drawPath(pathSVGElem, pathElem, horsePath);
         </script>
     </body>
