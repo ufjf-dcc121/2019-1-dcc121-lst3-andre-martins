@@ -11,8 +11,8 @@
 
             #horse {
                 position: absolute;
-                width: 30px;
-                height: 30px;
+                width: 20px;
+                height: 20px;
                 background-color: #ce3d3d;
             }
 
@@ -27,7 +27,7 @@
                 pointer-events: none;
             }
             #path {
-                stroke: #710d0d;
+                stroke: #710d0d99;
             }
 
             #board {
@@ -35,9 +35,12 @@
             }
 
             #board tr td {
+                box-sizing: border-box;
+                vertical-align: bottom;
+                z-index: 1;
                 width: 60px;
                 height: 60px;
-                padding: 0;
+                padding: 2px;
             }
             #board tr td.even {
                 background-color: #fad49e;
@@ -69,12 +72,14 @@
 
             var horsePath = [];
 
-            function horseMover(svg, path, horsePath, pos) {
+            function horseMover(cell, svg, path, horsePath, pos) {
                 return function () {
                     if (!movementIsValid(horsePath, pos))
                         return;
 
                     horsePath.push(pos);
+
+                    cell.textContent = horsePath.length;
                     drawPath(svg, path, horsePath);
                 }
             }
@@ -85,7 +90,7 @@
 
                     for (var x = 0; x < size; ++x) {
                         var cellElem = document.createElement("td");
-                        cellElem.addEventListener("click", horseMover(svg, path, horsePath, {x: x, y: y}));
+                        cellElem.addEventListener("click", horseMover(cellElem, svg, path, horsePath, {x: x, y: y}));
 
                         if ((x + y) % 2 == 0)
                             cellElem.classList.add("even");
@@ -102,7 +107,7 @@
             }
             function drawPath(svg, path, horsePath) {
                 var cellSize = 60;
-                var halfHorseSize = 15;
+                var halfHorseSize = 10;
 
                 if (horsePath.length > 0) {
                     var horsePathString = "M" + horsePath[0].x + "," + horsePath[0].y;
