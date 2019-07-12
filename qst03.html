@@ -75,156 +75,159 @@
             </table>
         </div>
         <script type="text/javascript">
-            const BOARD_SIZE = 8;
+            function Board(horseElem, svgElem, pathElem, boardElem, size) {
+                this.boardSize = size;
+                this.cellSize = 60;
+                this.halfHorseSize = 10;
 
-            var horseElem = document.getElementById("horse");
-            var pathSVGElem = document.getElementById("path-svg");
-            var pathElem = document.getElementById("path");
-            var boardElem = document.getElementById("board");
+                this.horseElem = horseElem;
+                this.svgElem = svgElem;
+                this.pathElem = pathElem;
+                this.boardElem = boardElem;
 
-            var horsePath = [];
-            var availableMovements = getValidMovements(horsePath);
+                this.horsePath = [];
+                // this.availableMovements = this.getValidMovements();
+                this.availableMovements = [];
 
-            function getCell(board, pos) {
-                row = board.children[pos.y];
-                cell = row.children[pos.x];
+                this.getCell = function(pos) {
+                    row = this.boardElem.children[pos.y];
+                    cell = row.children[pos.x];
 
-                return cell;
-            }
-
-            function horseMover(board, cell, svg, path, horsePath, availableMovements, pos) {
-                return function () {
-                    if (!movementIsValid(horsePath, pos))
-                        return;
-
-                    for (var i = 0; i < availableMovements.length; ++i) {
-                        var availableCell = getCell(board, availableMovements[i]);
-                        availableCell.classList.remove("available");
-                    }
-
-                    horsePath.push(pos);
-
-                    cell.textContent = horsePath.length;
-                    cell.classList.add("used");
-
-                    availableMovements = getValidMovements(horsePath);
-                    for (var i = 0; i < availableMovements.length; ++i) {
-                        var availableCell = getCell(board, availableMovements[i]);
-                        availableCell.classList.add("available");
-                    }
-
-                    drawPath(svg, path, horsePath);
+                    return cell;
                 }
-            }
 
-            function drawBoard(board, svg, path, horsePath, availableMovements) {
-                for (var y = 0; y < BOARD_SIZE; ++y) {
-                    var rowElem = document.createElement("tr");
+                this.horseMover = function(cell, pos) {
+                    return function () {
+                        if (!this.movementIsValid(pos))
+                            return;
 
-                    for (var x = 0; x < BOARD_SIZE; ++x) {
-                        var cellElem = document.createElement("td");
-                        cellElem.addEventListener("click", horseMover(board, cellElem, svg, path, horsePath, availableMovements, {x: x, y: y}));
-
-                        if ((x + y) % 2 == 0)
-                            cellElem.classList.add("even");
-                        else
-                            cellElem.classList.add("odd");
-
-                        rowElem.appendChild(cellElem);
-                    }
-
-                    board.appendChild(rowElem);
-
-                    svg.setAttribute("viewBox", -0.5 + " " + -0.5 + " " + BOARD_SIZE + " " + BOARD_SIZE)
-                }
-            }
-            function drawPath(svg, path, horsePath) {
-                var cellSize = 60;
-                var halfHorseSize = 10;
-
-                if (horsePath.length > 0) {
-                    var horsePathString = "M" + horsePath[0].x + "," + horsePath[0].y;
-                    for (var i = 1; i < horsePath.length; ++i) {
-                        horsePathString += "L" + horsePath[i].x + "," + horsePath[i].y;
-                    }
-                    path.setAttribute("d", horsePathString);
-
-                    horseElem.style.left = ((horsePath[horsePath.length - 1].x + 0.5) * cellSize - halfHorseSize) + "px";
-                    horseElem.style.top = ((horsePath[horsePath.length - 1].y + 0.5) * cellSize - halfHorseSize) + "px";
-
-                    horseElem.classList.remove("hidden");
-                }
-                else {
-                    horseElem.classList.add("hidden");
-                }
-            }
-
-            function posComparator(newPos) {
-                return function (pos) {
-                    return (pos.x == newPos.x && pos.y == newPos.y);
-                }
-            }
-
-            function posChecker(horsePath) {
-                return function (pos) {
-                    return movementIsValid(horsePath, pos);
-                }
-            }
-
-            function getValidMovements(horsePath) {
-                if (horsePath.length <= 0) {
-                    var movements = [];
-                    for (var y = 0; y < BOARD_SIZE; ++y) {
-                        for (var x = 0; x < BOARD_SIZE; ++x) {
-                            movements.push({x: x, y: y});
+                        for (var i = 0; i < this.availableMovements.length; ++i) {
+                            var availableCell = this.getCell(this.availableMovements[i]);
+                            availableCell.classList.remove("available");
                         }
+
+                        this.horsePath.push(pos);
+
+                        cell.textContent = this.horsePath.length;
+                        cell.classList.add("used");
+
+                        this.availableMovements = this.getValidMovements();
+                        for (var i = 0; i < this.availableMovements.length; ++i) {
+                            var availableCell = this.getCell(this.availableMovements[i]);
+                            availableCell.classList.add("available");
+                        }
+
+                        this.drawPath();
+                    }.bind(this);
+                }
+
+                this.drawBoard = function() {
+                    for (var y = 0; y < this.boardSize; ++y) {
+                        var rowElem = document.createElement("tr");
+
+                        for (var x = 0; x < this.boardSize; ++x) {
+                            var cellElem = document.createElement("td");
+                            cellElem.addEventListener("click", this.horseMover(cellElem, {x: x, y: y}));
+
+                            if ((x + y) % 2 == 0)
+                                cellElem.classList.add("even");
+                            else
+                                cellElem.classList.add("odd");
+
+                            rowElem.appendChild(cellElem);
+                        }
+
+                        this.boardElem.appendChild(rowElem);
+
+                        this.svgElem.setAttribute("viewBox", -0.5 + " " + -0.5 + " " + this.boardSize + " " + this.boardSize)
                     }
+                }
+
+                this.drawPath = function() {
+                    if (this.horsePath.length > 0) {
+                        var horsePathString = "M" + this.horsePath[0].x + "," + this.horsePath[0].y;
+                        for (var i = 1; i < this.horsePath.length; ++i) {
+                            horsePathString += "L" + this.horsePath[i].x + "," + this.horsePath[i].y;
+                        }
+                        this.pathElem.setAttribute("d", horsePathString);
+
+                        this.horseElem.style.left = ((this.horsePath[this.horsePath.length - 1].x + 0.5) * this.cellSize - this.halfHorseSize) + "px";
+                        this.horseElem.style.top = ((this.horsePath[this.horsePath.length - 1].y + 0.5) * this.cellSize - this.halfHorseSize) + "px";
+
+                        this.horseElem.classList.remove("hidden");
+                    }
+                    else {
+                        this.horseElem.classList.add("hidden");
+                    }
+                }
+
+                this.posComparator = function(newPos) {
+                    return function (pos) {
+                        return (pos.x == newPos.x && pos.y == newPos.y);
+                    }
+                }
+
+                this.getValidMovements = function() {
+                    if (this.horsePath.length <= 0) {
+                        var movements = [];
+                        for (var y = 0; y < this.boardSize; ++y) {
+                            for (var x = 0; x < this.boardSize; ++x) {
+                                movements.push({x: x, y: y});
+                            }
+                        }
+
+                        return movements;
+                    }
+
+                    var lastPos = this.horsePath[this.horsePath.length - 1];
+
+                    var movements = [
+                        {x: lastPos.x - 1, y: lastPos.y - 2},
+                        {x: lastPos.x - 1, y: lastPos.y + 2},
+                        {x: lastPos.x + 1, y: lastPos.y - 2},
+                        {x: lastPos.x + 1, y: lastPos.y + 2},
+                        {x: lastPos.x - 2, y: lastPos.y - 1},
+                        {x: lastPos.x - 2, y: lastPos.y + 1},
+                        {x: lastPos.x + 2, y: lastPos.y - 1},
+                        {x: lastPos.x + 2, y: lastPos.y + 1},
+                    ]
+
+                    movements = movements.filter(this.movementIsValid.bind(this));
 
                     return movements;
                 }
 
-                var lastPos = horsePath[horsePath.length - 1];
+                this.movementIsValid = function(newPos) {
+                    if (this.horsePath.length <= 0)
+                        return true;
 
-                var movements = [
-                    {x: lastPos.x - 1, y: lastPos.y - 2},
-                    {x: lastPos.x - 1, y: lastPos.y + 2},
-                    {x: lastPos.x + 1, y: lastPos.y - 2},
-                    {x: lastPos.x + 1, y: lastPos.y + 2},
-                    {x: lastPos.x - 2, y: lastPos.y - 1},
-                    {x: lastPos.x - 2, y: lastPos.y + 1},
-                    {x: lastPos.x + 2, y: lastPos.y - 1},
-                    {x: lastPos.x + 2, y: lastPos.y + 1},
-                ]
+                    if (newPos.x < 0 || newPos.x >= this.boardSize ||
+                        newPos.y < 0 || newPos.y >= this.boardSize)
+                        return false;
 
-                movements = movements.filter(posChecker(horsePath));
+                    var lastPos = this.horsePath[this.horsePath.length - 1];
+                    var dx = Math.abs(lastPos.x - newPos.x);
+                    var dy = Math.abs(lastPos.y - newPos.y);
 
-                return movements;
-            }
+                    if (!((dx == 1 && dy == 2) || (dx == 2 && dy == 1)))
+                        return false;
 
-            function movementIsValid(horsePath, newPos) {
-                if (horsePath.length <= 0)
+                    var checkPos = this.horsePath.find(this.posComparator(newPos))
+                    if (checkPos)
+                        return false;
+
                     return true;
-
-                if (newPos.x < 0 || newPos.x >= BOARD_SIZE ||
-                    newPos.y < 0 || newPos.y >= BOARD_SIZE)
-                    return false;
-
-                var lastPos = horsePath[horsePath.length - 1];
-                var dx = Math.abs(lastPos.x - newPos.x);
-                var dy = Math.abs(lastPos.y - newPos.y);
-
-                if (!((dx == 1 && dy == 2) || (dx == 2 && dy == 1)))
-                    return false;
-
-                var checkPos = horsePath.find(posComparator(newPos))
-                if (checkPos)
-                    return false;
-
-                return true;
+                }
             }
 
-            drawBoard(boardElem, pathSVGElem, pathElem, horsePath, availableMovements);
-            drawPath(pathSVGElem, pathElem, horsePath);
+            var horseElem = document.getElementById("horse");
+            var svgElem = document.getElementById("path-svg");
+            var pathElem = document.getElementById("path");
+            var boardElem = document.getElementById("board");
+
+            var board = new Board(horseElem, svgElem, pathElem, boardElem, 8);
+            board.drawBoard();
+            board.drawPath();
         </script>
     </body>
 </html>
