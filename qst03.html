@@ -74,6 +74,8 @@
             <table id="board">
             </table>
         </div>
+        <br />
+        <button type="button" id="reset">Resetar</button>
         <script type="text/javascript">
             function Board(horseElem, svgElem, pathElem, boardElem, size) {
                 this.boardSize = size;
@@ -86,7 +88,6 @@
                 this.boardElem = boardElem;
 
                 this.horsePath = [];
-                // this.availableMovements = this.getValidMovements();
                 this.availableMovements = [];
 
                 this.getCell = function(pos) {
@@ -94,34 +95,27 @@
                     cell = row.children[pos.x];
 
                     return cell;
-                }
+                };
 
                 this.horseMover = function(cell, pos) {
                     return function () {
                         if (!this.movementIsValid(pos))
                             return;
 
-                        for (var i = 0; i < this.availableMovements.length; ++i) {
-                            var availableCell = this.getCell(this.availableMovements[i]);
-                            availableCell.classList.remove("available");
-                        }
-
                         this.horsePath.push(pos);
 
                         cell.textContent = this.horsePath.length;
                         cell.classList.add("used");
 
-                        this.availableMovements = this.getValidMovements();
-                        for (var i = 0; i < this.availableMovements.length; ++i) {
-                            var availableCell = this.getCell(this.availableMovements[i]);
-                            availableCell.classList.add("available");
-                        }
-
+                        this.drawAvaibleMovements();
                         this.drawPath();
                     }.bind(this);
-                }
+                };
 
                 this.drawBoard = function() {
+                    while (this.boardElem.firstChild)
+                        this.boardElem.removeChild(this.boardElem.firstChild);
+
                     for (var y = 0; y < this.boardSize; ++y) {
                         var rowElem = document.createElement("tr");
 
@@ -141,7 +135,7 @@
 
                         this.svgElem.setAttribute("viewBox", -0.5 + " " + -0.5 + " " + this.boardSize + " " + this.boardSize)
                     }
-                }
+                };
 
                 this.drawPath = function() {
                     if (this.horsePath.length > 0) {
@@ -157,15 +151,30 @@
                         this.horseElem.classList.remove("hidden");
                     }
                     else {
+                        this.pathElem.setAttribute("d", "");
                         this.horseElem.classList.add("hidden");
                     }
-                }
+                };
+
+                this.drawAvaibleMovements = function() {
+                    for (var i = 0; i < this.availableMovements.length; ++i) {
+                        var availableCell = this.getCell(this.availableMovements[i]);
+                        availableCell.classList.remove("available");
+                    }
+
+                    this.availableMovements = this.getValidMovements();
+
+                    for (var i = 0; i < this.availableMovements.length; ++i) {
+                        var availableCell = this.getCell(this.availableMovements[i]);
+                        availableCell.classList.add("available");
+                    }
+                };
 
                 this.posComparator = function(newPos) {
                     return function (pos) {
                         return (pos.x == newPos.x && pos.y == newPos.y);
                     }
-                }
+                };
 
                 this.getValidMovements = function() {
                     if (this.horsePath.length <= 0) {
@@ -195,7 +204,7 @@
                     movements = movements.filter(this.movementIsValid.bind(this));
 
                     return movements;
-                }
+                };
 
                 this.movementIsValid = function(newPos) {
                     if (this.horsePath.length <= 0)
@@ -217,7 +226,15 @@
                         return false;
 
                     return true;
-                }
+                };
+
+                this.reset = function() {
+                    this.horsePath = [];
+                    this.availableMovements = [];
+
+                    this.drawBoard();
+                    this.drawPath();
+                };
             }
 
             var horseElem = document.getElementById("horse");
@@ -225,9 +242,14 @@
             var pathElem = document.getElementById("path");
             var boardElem = document.getElementById("board");
 
+            var resetElem = document.getElementById("reset");
+
             var board = new Board(horseElem, svgElem, pathElem, boardElem, 8);
             board.drawBoard();
+            // board.drawAvaibleMovements(); // Fica feio =/
             board.drawPath();
+
+            reset.addEventListener("click", board.reset.bind(board));
         </script>
     </body>
 </html>
