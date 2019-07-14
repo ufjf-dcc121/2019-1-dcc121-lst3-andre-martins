@@ -94,7 +94,10 @@
         </div>
         <br />
         <button type="button" id="reset">Resetar</button>
-        <button type="button" id="undo">Desfazer</button>
+        <button type="button" id="undo">Desfazer</button><br />
+        <button type="button" id="movement-priority">Mostrar número de movimentos</button><br />
+        <button type="button" id="critical-movement">Mostrar movimentos críticos</button><br />
+        <button type="button" id="dead-end">Mostrar caminhos sem saída</button>
         <script type="text/javascript">
             function Board(horseElem, svgElem, pathElem, boardElem, size) {
                 this.boardSize = size;
@@ -110,9 +113,15 @@
                 this.availableMovements = [];
 
                 this.hints = {
-                    movementPriority: true,
-                    criticalMovement: true,
-                    deadEnd: true,
+                    movementPriority: false,
+                    criticalMovement: false,
+                    deadEnd: false,
+                };
+
+                this.newHints = {
+                    movementPriority: false,
+                    criticalMovement: false,
+                    deadEnd: false,
                 };
 
                 this.getCell = function(pos) {
@@ -236,7 +245,7 @@
                             }
 
                             if (this.hints.criticalMovement) {
-                                if (nextAvailableMovements.length == 1)
+                                if (nextAvailableMovements.length <= 1)
                                     availableCell.classList.add("critical");
                             }
 
@@ -249,20 +258,6 @@
                             }
                         }
                     }
-                };
-
-                this.drawHints = function() {
-                    // if (this.hints) {
-                    //     for (var i = 0; i < this.availableMovements.length; ++i) {
-                    //         var availableCell = this.getCell(this.availableMovements[i]);
-                    //         var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
-                    //
-                    //         availableCell.textContent = nextAvailableMovements.length;
-                    //     }
-                    // }
-                    // else {
-                    //     // Apagar dicas
-                    // }
                 };
 
                 this.posComparator = function(newPos) {
@@ -361,6 +356,8 @@
                 };
 
                 this.reset = function() {
+                    this.hints = this.newHints;
+
                     this.horsePath = [];
                     this.availableMovements = [];
 
@@ -391,6 +388,10 @@
             var resetElem = document.getElementById("reset");
             var undoElem = document.getElementById("undo");
 
+            var movementPriorityElem = document.getElementById("movement-priority");
+            var criticalMovementElem = document.getElementById("critical-movement");
+            var deadEndElem = document.getElementById("dead-end");
+
             var board = new Board(horseElem, svgElem, pathElem, boardElem, 8);
             board.drawBoard();
             board.drawAvailableMovements();
@@ -398,6 +399,37 @@
 
             resetElem.addEventListener("click", board.reset.bind(board));
             undoElem.addEventListener("click", board.undo.bind(board));
+
+            movementPriorityElem.addEventListener("click", function() {
+                if (board.newHints.movementPriority) {
+                    board.newHints.movementPriority = false;
+                    this.textContent = "Mostrar número de movimentos";
+                }
+                else {
+                    board.newHints.movementPriority = true;
+                    this.textContent = "Esconder número de movimentos";
+                }
+            });
+            criticalMovementElem.addEventListener("click", function() {
+                if (board.newHints.criticalMovement) {
+                    board.newHints.criticalMovement = false;
+                    this.textContent = "Mostrar movimentos críticos";
+                }
+                else {
+                    board.newHints.criticalMovement = true;
+                    this.textContent = "Esconder movimentos críticos";
+                }
+            });
+            deadEndElem.addEventListener("click", function() {
+                if (board.newHints.deadEnd) {
+                    board.newHints.deadEnd = false;
+                    this.textContent = "Mostrar caminhos sem saída";
+                }
+                else {
+                    board.newHints.deadEnd = true;
+                    this.textContent = "Esconder caminhos sem saída";
+                }
+            });
         </script>
     </body>
 </html>
