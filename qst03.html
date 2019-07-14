@@ -67,6 +67,11 @@
                 color: #0f3309;
             }
 
+            #board tr td.critical {
+                background-color: #f44336;
+                color: #270707;
+            }
+
             .hidden {
                 display: none;
             }
@@ -162,7 +167,6 @@
                         var oldSize = this.pathElem.getTotalLength();
                         var oldPath = this.pathElem.getAttribute("d");
 
-
                         this.pathElem.setAttribute("d", horsePathString);
                         var newSize = this.pathElem.getTotalLength();
                         this.pathElem.style.strokeDasharray = newSize + 3;
@@ -189,9 +193,17 @@
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.remove("available");
 
-                        if (this.hints.movementPriority) {
-                            if (!availableCell.classList.contains("used"))
-                                availableCell.textContent = "";
+                        if (this.hints.movementPriority || this.hints.criticalMovement) {
+                            var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
+
+                            if (this.hints.movementPriority) {
+                                if (!availableCell.classList.contains("used"))
+                                    availableCell.textContent = "";
+                            }
+
+                            if (this.hints.criticalMovement) {
+                                availableCell.classList.remove("critical");
+                            }
                         }
                     }
 
@@ -203,9 +215,16 @@
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.add("available");
 
-                        if (this.hints.movementPriority) {
+                        if (this.hints.movementPriority || this.hints.criticalMovement) {
                             var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
-                            availableCell.textContent = nextAvailableMovements.length;
+                            if (this.hints.movementPriority) {
+                                availableCell.textContent = nextAvailableMovements.length;
+                            }
+
+                            if (this.hints.criticalMovement) {
+                                if (nextAvailableMovements.length == 1)
+                                    availableCell.classList.add("critical");
+                            }
                         }
                     }
                 };
@@ -280,9 +299,6 @@
                 };
 
                 this.movementIsValidFrom = function(fromPos, newPos) {
-                    if (this.horsePath.length <= 0)
-                        return true;
-
                     if (newPos.x < 0 || newPos.x >= this.boardSize ||
                         newPos.y < 0 || newPos.y >= this.boardSize)
                         return false;
