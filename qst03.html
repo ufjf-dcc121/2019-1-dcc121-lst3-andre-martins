@@ -45,6 +45,7 @@
                 width: 60px;
                 height: 60px;
                 padding: 2px;
+                user-select: none;
             }
             #board tr td.even {
                 background-color: #fad49e;
@@ -70,6 +71,10 @@
             #board tr td.critical {
                 background-color: #f44336;
                 color: #270707;
+            }
+
+            #board tr td.dead-end {
+                box-shadow: inset 0 0 0 8px #96150b;
             }
 
             .hidden {
@@ -193,7 +198,7 @@
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.remove("available");
 
-                        if (this.hints.movementPriority || this.hints.criticalMovement) {
+                        if (this.hints.movementPriority || this.hints.criticalMovement || this.hints.deadEnd) {
                             var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
 
                             if (this.hints.movementPriority) {
@@ -203,6 +208,14 @@
 
                             if (this.hints.criticalMovement) {
                                 availableCell.classList.remove("critical");
+                            }
+
+                            if (this.hints.deadEnd) {
+                                if (!availableCell.classList.contains("used") && nextAvailableMovements.length == 1)
+                                    availableCell.classList.add("dead-end");
+
+                                if (availableCell.classList.contains("used"))
+                                    availableCell.classList.remove("dead-end");
                             }
                         }
                     }
@@ -215,8 +228,9 @@
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.add("available");
 
-                        if (this.hints.movementPriority || this.hints.criticalMovement) {
+                        if (this.hints.movementPriority || this.hints.criticalMovement || this.hints.deadEnd) {
                             var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
+
                             if (this.hints.movementPriority) {
                                 availableCell.textContent = nextAvailableMovements.length;
                             }
@@ -224,6 +238,14 @@
                             if (this.hints.criticalMovement) {
                                 if (nextAvailableMovements.length == 1)
                                     availableCell.classList.add("critical");
+                            }
+
+                            if (this.hints.deadEnd) {
+                                if (nextAvailableMovements.length >= 1)
+                                    availableCell.classList.remove("dead-end");
+
+                                if (nextAvailableMovements.length == 0)
+                                    availableCell.classList.add("dead-end");
                             }
                         }
                     }
