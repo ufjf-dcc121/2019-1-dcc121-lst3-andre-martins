@@ -61,6 +61,10 @@
 
             #board tr td.available {
                 background-color: #42a934;
+                text-align: center;
+                vertical-align: middle;
+                font-size: 2em;
+                color: #0f3309;
             }
 
             .hidden {
@@ -95,6 +99,12 @@
                 this.horsePath = [];
                 this.availableMovements = [];
 
+                this.hints = {
+                    movementPriority: true,
+                    criticalMovement: true,
+                    deadEnd: true,
+                };
+
                 this.getCell = function(pos) {
                     row = this.boardElem.children[pos.y];
                     cell = row.children[pos.x];
@@ -112,7 +122,7 @@
                         cell.textContent = this.horsePath.length;
                         cell.classList.add("used");
 
-                        this.drawAvaibleMovements();
+                        this.drawAvailableMovements();
                         this.drawPath();
                     }.bind(this);
                 };
@@ -174,10 +184,15 @@
                     }
                 };
 
-                this.drawAvaibleMovements = function() {
+                this.drawAvailableMovements = function() {
                     for (var i = 0; i < this.availableMovements.length; ++i) {
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.remove("available");
+
+                        if (this.hints.movementPriority) {
+                            if (!availableCell.classList.contains("used"))
+                                availableCell.textContent = "";
+                        }
                     }
 
                     this.availableMovements = this.getValidMovements();
@@ -187,7 +202,26 @@
                     for (var i = 0; i < this.availableMovements.length; ++i) {
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.add("available");
+
+                        if (this.hints.movementPriority) {
+                            var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
+                            availableCell.textContent = nextAvailableMovements.length;
+                        }
                     }
+                };
+
+                this.drawHints = function() {
+                    // if (this.hints) {
+                    //     for (var i = 0; i < this.availableMovements.length; ++i) {
+                    //         var availableCell = this.getCell(this.availableMovements[i]);
+                    //         var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
+                    //
+                    //         availableCell.textContent = nextAvailableMovements.length;
+                    //     }
+                    // }
+                    // else {
+                    //     // Apagar dicas
+                    // }
                 };
 
                 this.posComparator = function(newPos) {
@@ -195,6 +229,25 @@
                         return (pos.x == newPos.x && pos.y == newPos.y);
                     }
                 };
+
+                this.getValidMovementsFrom = function(fromPos) {
+                    var movements = [
+                        {x: fromPos.x - 1, y: fromPos.y - 2},
+                        {x: fromPos.x - 1, y: fromPos.y + 2},
+                        {x: fromPos.x + 1, y: fromPos.y - 2},
+                        {x: fromPos.x + 1, y: fromPos.y + 2},
+                        {x: fromPos.x - 2, y: fromPos.y - 1},
+                        {x: fromPos.x - 2, y: fromPos.y + 1},
+                        {x: fromPos.x + 2, y: fromPos.y - 1},
+                        {x: fromPos.x + 2, y: fromPos.y + 1},
+                    ]
+
+                    movements = movements.filter(function(pos) {
+                        return this.movementIsValidFrom(fromPos, pos);
+                    }.bind(this));
+
+                    return movements;
+                }
 
                 this.getValidMovements = function() {
                     if (this.horsePath.length <= 0) {
@@ -225,6 +278,27 @@
 
                     return movements;
                 };
+
+                this.movementIsValidFrom = function(fromPos, newPos) {
+                    if (this.horsePath.length <= 0)
+                        return true;
+
+                    if (newPos.x < 0 || newPos.x >= this.boardSize ||
+                        newPos.y < 0 || newPos.y >= this.boardSize)
+                        return false;
+
+                    var dx = Math.abs(fromPos.x - newPos.x);
+                    var dy = Math.abs(fromPos.y - newPos.y);
+
+                    if (!((dx == 1 && dy == 2) || (dx == 2 && dy == 1)))
+                        return false;
+
+                    var checkPos = this.horsePath.find(this.posComparator(newPos))
+                    if (checkPos)
+                        return false;
+
+                    return true;
+                }
 
                 this.movementIsValid = function(newPos) {
                     if (this.horsePath.length <= 0)
@@ -266,7 +340,7 @@
                     lastCell.textContent = "";
                     lastCell.classList.remove("used");
 
-                    this.drawAvaibleMovements();
+                    this.drawAvailableMovements();
                     this.drawPath();
                 };
             }
@@ -281,7 +355,7 @@
 
             var board = new Board(horseElem, svgElem, pathElem, boardElem, 8);
             board.drawBoard();
-            board.drawAvaibleMovements();
+            board.drawAvailableMovements();
             board.drawPath();
 
             resetElem.addEventListener("click", board.reset.bind(board));
