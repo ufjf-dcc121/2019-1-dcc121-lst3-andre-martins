@@ -76,6 +76,7 @@
         </div>
         <br />
         <button type="button" id="reset">Resetar</button>
+        <button type="button" id="undo">Desfazer</button>
         <script type="text/javascript">
             function Board(horseElem, svgElem, pathElem, boardElem, size) {
                 this.boardSize = size;
@@ -163,6 +164,8 @@
                     }
 
                     this.availableMovements = this.getValidMovements();
+                    if (this.availableMovements.length > 8) // Fica feio =/
+                        return;
 
                     for (var i = 0; i < this.availableMovements.length; ++i) {
                         var availableCell = this.getCell(this.availableMovements[i]);
@@ -235,6 +238,20 @@
                     this.drawBoard();
                     this.drawPath();
                 };
+
+                this.undo = function() {
+                    if (this.horsePath.length <= 0)
+                        return;
+
+                    var lastPos = this.horsePath.pop();
+                    var lastCell = this.getCell(lastPos);
+
+                    lastCell.textContent = "";
+                    lastCell.classList.remove("used");
+
+                    this.drawAvaibleMovements();
+                    this.drawPath();
+                };
             }
 
             var horseElem = document.getElementById("horse");
@@ -243,13 +260,15 @@
             var boardElem = document.getElementById("board");
 
             var resetElem = document.getElementById("reset");
+            var undoElem = document.getElementById("undo");
 
             var board = new Board(horseElem, svgElem, pathElem, boardElem, 8);
             board.drawBoard();
-            // board.drawAvaibleMovements(); // Fica feio =/
+            board.drawAvaibleMovements();
             board.drawPath();
 
-            reset.addEventListener("click", board.reset.bind(board));
+            resetElem.addEventListener("click", board.reset.bind(board));
+            undoElem.addEventListener("click", board.undo.bind(board));
         </script>
     </body>
 </html>
