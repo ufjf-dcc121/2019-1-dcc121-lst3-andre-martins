@@ -120,6 +120,8 @@
                     <input type="range" id="delay" min="0" max="4" step="any" value="2" />
                     <input type="number" id="delay-value" min="1" max="10000" value="100">
                 </div>
+                <button type="button" id="cut-dead-end">Cortar caminhos sem saída</button>
+                <button type="button" id="sort-options">Ordenar alternativas</button>
             </section>
             <section>
                 <h1>Dicas</h1>
@@ -141,6 +143,7 @@
 
                 this.horsePath = [];
                 this.availableMovements = [];
+                this.deadEnds = []
 
                 this.block = false;
 
@@ -260,11 +263,16 @@
                             }
 
                             if (this.hints.deadEnd) {
-                                if (!availableCell.classList.contains("used") && nextAvailableMovements.length == 1)
+                                if (!availableCell.classList.contains("used") && nextAvailableMovements.length == 1) {
                                     availableCell.classList.add("dead-end");
+                                    this.deadEnds.push(this.availableMovements[i]);
+                                }
 
-                                if (availableCell.classList.contains("used"))
+                                if (availableCell.classList.contains("used")) {
                                     availableCell.classList.remove("dead-end");
+                                    var pos = this.availableMovements[i];
+                                    this.deadEnds = this.deadEnds.filter(function(elem) { return !(elem.x == pos.x && elem.y == pos.y); })
+                                }
                             }
                         }
                     }
@@ -290,11 +298,16 @@
                             }
 
                             if (this.hints.deadEnd) {
-                                if (nextAvailableMovements.length >= 1)
+                                if (nextAvailableMovements.length >= 1) {
                                     availableCell.classList.remove("dead-end");
+                                    var pos = this.availableMovements[i];
+                                    this.deadEnds = this.deadEnds.filter(function(elem) { return !(elem.x == pos.x && elem.y == pos.y); })
+                                }
 
-                                if (nextAvailableMovements.length == 0)
+                                if (nextAvailableMovements.length == 0) {
                                     availableCell.classList.add("dead-end");
+                                    this.deadEnds.push(this.availableMovements[i]);
+                                }
                             }
                         }
                     }
@@ -400,6 +413,7 @@
 
                     this.horsePath = [];
                     this.availableMovements = this.getValidMovements();
+                    this.deadEnds = []
 
                     clearTimeout(this.undoTimeout);
 
@@ -442,11 +456,22 @@
 
                 this.beginState;
 
+                this.strategies = {
+                    cutDeadEnd: false,
+                    sortOptions: false,
+                }
+
+                this.newStrategies = {
+                    cutDeadEnd: false,
+                    sortOptions: false,
+                }
+
                 this.begin = function() {
                     if (this.inProgress == true)
                         return;
 
                     this.options = [this.board.availableMovements.slice()]
+                    this.strategies = Object.assign({}, this.newStrategies);
 
                     this.inProgress = true;
                     this.board.block = true;
@@ -522,7 +547,8 @@
                     var currentLevel = this.options.length;
                     var currentOptions = this.options[this.options.length - 1];
 
-                    if (currentOptions.length <= 0) {
+                    if (currentOptions.length <= 0 ||
+                        this.strategies.cutDeadEnd && this.board.deadEnds.length > 2) {
                         if (currentLevel > 1) {
                             this.board.undo();
                             this.options.pop();
@@ -566,11 +592,14 @@
             var delayElem = document.getElementById("delay");
             var delayValueElem = document.getElementById("delay-value");
 
+            var cutDeadEndElem = document.getElementById("cut-dead-end");
+            var sortOptionsElem = document.getElementById("sort-options");
+
             var movementPriorityElem = document.getElementById("movement-priority");
             var criticalMovementElem = document.getElementById("critical-movement");
             var deadEndElem = document.getElementById("dead-end");
 
-            var board = new Board(horseElem, svgElem, pathElem, boardElem, 5);
+            var board = new Board(horseElem, svgElem, pathElem, boardElem, 8);
             board.drawBoard();
             board.drawAvailableMovements();
             board.drawPath();
@@ -599,6 +628,28 @@
             delayValueElem.addEventListener("input", function() {
                 delayElem.value = Math.log10(delayValueElem.value);
                 finder.setDelay(delayValueElem.value);
+            });
+
+            cutDeadEndElem.addEventListener("click", function() {
+                if (finder.newStrategies.cutDeadEnd) {
+                    finder.newStrategies.cutDeadEnd = false;
+                    this.textContent = "Cortar caminhos sem saída";
+                }
+                else {
+                    finder.newStrategies.cutDeadEnd = true;
+                    this.textContent = "Manter caminhos sem saída";
+                }
+            });
+
+            sortOptionsElem.addEventListener("click", function() {
+                if (finder.newStrategies.sortOptions) {
+                    finder.newStrategies.sortOptions = false;
+                    this.textContent = "Ordenar alternativas";
+                }
+                else {
+                    finder.newStrategies.sortOptions = true;
+                    this.textContent = "Não ordenar alternativas";
+                }
             });
 
             movementPriorityElem.addEventListener("click", function() {
