@@ -7,6 +7,7 @@
             #game {
                 position: relative;
                 display: inline-block;
+                margin: 6px;
             }
 
             #horse {
@@ -36,6 +37,11 @@
 
             #board {
                 border-collapse: collapse;
+                box-shadow: 0 0 0 6px black;
+            }
+
+            #board.auto {
+                box-shadow: 0 0 0 6px #ce3d3d;
             }
 
             #board tr td {
@@ -108,6 +114,12 @@
                 <button type="button" id="step">Passo</button>
                 <button type="button" id="stop">Interromper</button>
                 <button type="button" id="end">Terminar</button>
+                <br />
+                <div style="display: flex; align-items: center">
+                    Intervalo:
+                    <input type="range" id="delay" min="0" max="4" step="any" value="2" />
+                    <input type="number" id="delay-value" min="1" max="10000" value="100">
+                </div>
             </section>
             <section>
                 <h1>Dicas</h1>
@@ -143,6 +155,8 @@
                     criticalMovement: false,
                     deadEnd: false,
                 };
+
+                this.undoTimeout = null;
 
                 this.getCell = function(pos) {
                     row = this.boardElem.children[pos.y];
@@ -212,8 +226,9 @@
                         this.pathElem.style.strokeDashoffset = 3;
 
                         if (newSize < oldSize) {
+                            var undoDelay = parseFloat(window.getComputedStyle(this.horseElem).transitionDuration);
                             this.pathElem.setAttribute("d", oldPath);
-                            setTimeout(function() { this.pathElem.setAttribute("d", horsePathString); }, 200);
+                            this.undoTimeout = setTimeout(function() { this.pathElem.setAttribute("d", horsePathString); }, undoDelay * 1000);
                         }
 
                         this.horseElem.style.left = ((this.horsePath[this.horsePath.length - 1].x + 0.5) * this.cellSize - this.halfHorseSize) + "px";
@@ -386,6 +401,8 @@
                     this.horsePath = [];
                     this.availableMovements = this.getValidMovements();
 
+                    clearTimeout(this.undoTimeout);
+
                     this.drawBoard();
                     this.drawPath();
                 };
@@ -419,29 +436,28 @@
                 this.options = [this.board.availableMovements.slice()];
 
                 this.delay = 200;
+                this.newDelay = 200;
                 this.running = false;
                 this.inProgress = false;
 
                 this.beginState;
 
-                this.reset = function() {
-                    this.board.reset();
-                    this.options = [this.board.availableMovements.slice()];
-                };
-
                 this.begin = function() {
                     if (this.inProgress == true)
                         return;
 
+                    this.options = [this.board.availableMovements.slice()]
+
                     this.inProgress = true;
                     this.board.block = true;
+                    this.board.boardElem.classList.add("auto");
                     this.beginState = this.board.horsePath.slice();
 
                     this.start()
                 }
 
                 this.start = function() {
-                    if (this.running == true)
+                    if (this.inProgress == false || this.running == true)
                         return;
 
                     this.board.horseElem.style.transitionDuration = (this.delay / 1000) + "s";
@@ -475,6 +491,7 @@
                     this.stop();
 
                     this.board.setState(this.beginState);
+                    this.board.boardElem.classList.remove("auto");
                     this.board.block = false;
                     this.inProgress = false;
                 }
@@ -482,6 +499,12 @@
                 this.stepInterval = function() {
                     if (this.running)
                     {
+                        if (this.delay != this.newDelay) {
+                            this.delay = this.newDelay;
+                            this.board.horseElem.style.transitionDuration = (this.delay / 1000) + "s";
+                            this.board.pathElem.style.transitionDuration = (this.delay / 1000) + "s";
+                        }
+
                         this.stepFunction();
                         setTimeout(() => { this.stepInterval() }, this.delay);
                     }
@@ -500,8 +523,13 @@
                     var currentOptions = this.options[this.options.length - 1];
 
                     if (currentOptions.length <= 0) {
-                        this.board.undo();
-                        this.options.pop();
+                        if (currentLevel > 1) {
+                            this.board.undo();
+                            this.options.pop();
+                        }
+                        else {
+                            this.end();
+                        }
 
                         return;
                     }
@@ -509,8 +537,17 @@
                         var nextMove = currentOptions.pop();
                         this.board.move(this.board.getCell(nextMove), nextMove);
                         this.options.push(this.board.availableMovements.slice());
+
+                        if (this.board.horsePath.length == (this.board.boardSize * this.board.boardSize)) {
+                            this.stop();
+                            return;
+                        }
                     }
                 };
+
+                this.setDelay = function(delay) {
+                    this.newDelay = delay;
+                }
             }
 
             var horseElem = document.getElementById("horse");
@@ -526,12 +563,14 @@
             var stepElem = document.getElementById("step");
             var stopElem = document.getElementById("stop");
             var endElem = document.getElementById("end");
+            var delayElem = document.getElementById("delay");
+            var delayValueElem = document.getElementById("delay-value");
 
             var movementPriorityElem = document.getElementById("movement-priority");
             var criticalMovementElem = document.getElementById("critical-movement");
             var deadEndElem = document.getElementById("dead-end");
 
-            var board = new Board(horseElem, svgElem, pathElem, boardElem, 8);
+            var board = new Board(horseElem, svgElem, pathElem, boardElem, 5);
             board.drawBoard();
             board.drawAvailableMovements();
             board.drawPath();
@@ -552,6 +591,15 @@
             stepElem.addEventListener("click", finder.step.bind(finder));
             stopElem.addEventListener("click", finder.stop.bind(finder));
             endElem.addEventListener("click", finder.end.bind(finder));
+
+            delayElem.addEventListener("input", function() {
+                delayValueElem.value = Math.round(Math.pow(10, delayElem.value));
+                finder.setDelay(delayValueElem.value);
+            });
+            delayValueElem.addEventListener("input", function() {
+                delayElem.value = Math.log10(delayValueElem.value);
+                finder.setDelay(delayValueElem.value);
+            });
 
             movementPriorityElem.addEventListener("click", function() {
                 if (board.newHints.movementPriority) {
