@@ -93,11 +93,27 @@
             </table>
         </div>
         <br />
-        <button type="button" id="reset">Resetar</button>
-        <button type="button" id="undo">Desfazer</button><br />
-        <button type="button" id="movement-priority">Mostrar número de movimentos</button><br />
-        <button type="button" id="critical-movement">Mostrar movimentos críticos</button><br />
-        <button type="button" id="dead-end">Mostrar caminhos sem saída</button>
+        <section>
+            <h1>Controles</h1>
+            <section>
+                <h1>Manual</h1>
+                <button type="button" id="reset">Resetar</button>
+                <button type="button" id="undo">Desfazer</button>
+            </section>
+
+            <section>
+                <h1>Automático</h1>
+                <button type="button" id="start">Começar</button>
+                <button type="button" id="stop">Parar</button>
+                <button type="button" id="step">Passo</button>
+            </section>
+            <section>
+                <h1>Dicas</h1>
+                <button type="button" id="movement-priority">Mostrar número de movimentos</button><br />
+                <button type="button" id="critical-movement">Mostrar movimentos críticos</button><br />
+                <button type="button" id="dead-end">Mostrar caminhos sem saída</button>
+            </section>
+        </section>
         <script type="text/javascript">
             function Board(horseElem, svgElem, pathElem, boardElem, size) {
                 this.boardSize = size;
@@ -111,6 +127,8 @@
 
                 this.horsePath = [];
                 this.availableMovements = [];
+
+                this.block = false;
 
                 this.hints = {
                     movementPriority: false,
@@ -131,18 +149,23 @@
                     return cell;
                 };
 
+                this.move = function(cell, pos) {
+                    if (!this.movementIsValid(pos))
+                        return;
+
+                    this.horsePath.push(pos);
+
+                    cell.textContent = this.horsePath.length;
+                    cell.classList.add("used");
+
+                    this.drawAvailableMovements();
+                    this.drawPath();
+                };
+
                 this.horseMover = function(cell, pos) {
                     return function () {
-                        if (!this.movementIsValid(pos))
-                            return;
-
-                        this.horsePath.push(pos);
-
-                        cell.textContent = this.horsePath.length;
-                        cell.classList.add("used");
-
-                        this.drawAvailableMovements();
-                        this.drawPath();
+                        if (!this.block)
+                            this.move(cell, pos);
                     }.bind(this);
                 };
 
@@ -356,10 +379,10 @@
                 };
 
                 this.reset = function() {
-                    this.hints = this.newHints;
+                    this.hints = Object.assign({}, this.newHints);
 
                     this.horsePath = [];
-                    this.availableMovements = [];
+                    this.availableMovements = this.getValidMovements();
 
                     this.drawBoard();
                     this.drawPath();
@@ -380,6 +403,71 @@
                 };
             }
 
+            function Finder(board) {
+                this.board = board;
+
+                this.options = [this.board.availableMovements.slice()];
+
+                this.delay = 200;
+                this.running = false;
+
+                this.reset = function() {
+                    this.board.reset();
+                    this.options = [this.board.availableMovements.slice()];
+                };
+
+                this.start = function() {
+                    if (this.running == true)
+                        return;
+
+                    this.reset();
+                    this.board.horseElem.style.transitionDuration = (this.delay / 1000) + "s";
+                    this.board.pathElem.style.transitionDuration = (this.delay / 1000) + "s";
+
+                    this.running = true;
+                    this.board.block = true;
+                    this.stepInterval();
+                };
+
+                this.stop = function() {
+                    this.running = false;
+                    this.board.block = false;
+
+                    this.board.horseElem.style.transitionDuration = "";
+                    this.board.pathElem.style.transitionDuration = "";
+                };
+
+                this.stepInterval = function() {
+                    if (this.running)
+                    {
+                        this.step();
+                        setTimeout(() => { this.stepInterval() }, this.delay);
+                    }
+                };
+
+                this.step = function() {
+                    if (this.options.length <= 0) {
+                        this.stop();
+                        return;
+                    }
+
+                    var currentLevel = this.options.length;
+                    var currentOptions = this.options[this.options.length - 1];
+
+                    if (currentOptions.length <= 0) {
+                        this.board.undo();
+                        this.options.pop();
+
+                        return;
+                    }
+                    else {
+                        var nextMove = currentOptions.pop();
+                        this.board.move(this.board.getCell(nextMove), nextMove);
+                        this.options.push(this.board.availableMovements.slice());
+                    }
+                };
+            }
+
             var horseElem = document.getElementById("horse");
             var svgElem = document.getElementById("path-svg");
             var pathElem = document.getElementById("path");
@@ -387,6 +475,10 @@
 
             var resetElem = document.getElementById("reset");
             var undoElem = document.getElementById("undo");
+
+            var startElem = document.getElementById("start");
+            var stopElem = document.getElementById("stop");
+            var stepElem = document.getElementById("step");
 
             var movementPriorityElem = document.getElementById("movement-priority");
             var criticalMovementElem = document.getElementById("critical-movement");
@@ -397,8 +489,20 @@
             board.drawAvailableMovements();
             board.drawPath();
 
-            resetElem.addEventListener("click", board.reset.bind(board));
-            undoElem.addEventListener("click", board.undo.bind(board));
+            var finder = new Finder(board);
+
+            resetElem.addEventListener("click", function () {
+                if (!board.block)
+                    board.reset();
+            });
+            undoElem.addEventListener("click", function () {
+                if (!board.block)
+                    board.undo();
+            });
+
+            startElem.addEventListener("click", finder.start.bind(finder));
+            stopElem.addEventListener("click", finder.stop.bind(finder));
+            stepElem.addEventListener("click", finder.step.bind(finder));
 
             movementPriorityElem.addEventListener("click", function() {
                 if (board.newHints.movementPriority) {
