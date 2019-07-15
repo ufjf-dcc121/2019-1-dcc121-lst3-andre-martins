@@ -15,7 +15,9 @@
                 width: 20px;
                 height: 20px;
                 background-color: #ce3d3d;
-                transition: all .2s ease-in-out
+                transition: all .2s ease-in-out;
+                pointer-events: none;
+                z-index: 2;
             }
 
             #path-svg {
@@ -27,6 +29,7 @@
                 width: 100%;
                 height: 100%;
                 pointer-events: none;
+                z-index: 2;
             }
             #path {
                 stroke: #710d0d99;
@@ -52,7 +55,18 @@
                 height: 60px;
                 padding: 2px;
                 user-select: none;
+                position: relative;
             }
+            #board tr td:hover::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background-color: rgba(0, 0, 0, 0.15);
+            }
+
             #board tr td.even {
                 background-color: #fad49e;
             }
@@ -262,7 +276,9 @@
                         }
 
                         if (!availableCell.classList.contains("used") && nextAvailableMovements.length == 1) {
-                            this.deadEnds.push(this.availableMovements[i]);
+                            var pos = this.availableMovements[i];
+                            if (!this.deadEnds.find(function(elem) { return elem.x == pos.x && elem.y == pos.y; }))
+                                this.deadEnds.push(this.availableMovements[i]);
 
                             if (this.hints.deadEnd) {
                                 availableCell.classList.add("dead-end");
@@ -308,7 +324,9 @@
                         }
 
                         if (nextAvailableMovements.length == 0) {
-                            this.deadEnds.push(this.availableMovements[i]);
+                            var pos = this.availableMovements[i];
+                            if (!this.deadEnds.find(function(elem) { return elem.x == pos.x && elem.y == pos.y; }))
+                                this.deadEnds.push(this.availableMovements[i]);
 
                             if (this.hints.deadEnd) {
                                 availableCell.classList.add("dead-end");
@@ -553,6 +571,10 @@
 
                     if (currentOptions.length <= 0 ||
                         this.strategies.cutDeadEnd && this.board.deadEnds.length > 2) {
+                        console.log(this.options);
+                        console.log(currentOptions.length);
+                        console.log(this.board.deadEnds.length);
+                        console.log("----------------------");
                         if (currentLevel > 1) {
                             this.board.undo();
                             this.options.pop();
