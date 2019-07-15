@@ -250,29 +250,31 @@
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.remove("available");
 
-                        if (this.hints.movementPriority || this.hints.criticalMovement || this.hints.deadEnd) {
-                            var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
+                        var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
 
-                            if (this.hints.movementPriority) {
-                                if (!availableCell.classList.contains("used"))
-                                    availableCell.textContent = "";
-                            }
+                        if (this.hints.movementPriority) {
+                            if (!availableCell.classList.contains("used"))
+                                availableCell.textContent = "";
+                        }
 
-                            if (this.hints.criticalMovement) {
-                                availableCell.classList.remove("critical");
-                            }
+                        if (this.hints.criticalMovement) {
+                            availableCell.classList.remove("critical");
+                        }
+
+                        if (!availableCell.classList.contains("used") && nextAvailableMovements.length == 1) {
+                            this.deadEnds.push(this.availableMovements[i]);
 
                             if (this.hints.deadEnd) {
-                                if (!availableCell.classList.contains("used") && nextAvailableMovements.length == 1) {
-                                    availableCell.classList.add("dead-end");
-                                    this.deadEnds.push(this.availableMovements[i]);
-                                }
+                                availableCell.classList.add("dead-end");
+                            }
+                        }
 
-                                if (availableCell.classList.contains("used")) {
-                                    availableCell.classList.remove("dead-end");
-                                    var pos = this.availableMovements[i];
-                                    this.deadEnds = this.deadEnds.filter(function(elem) { return !(elem.x == pos.x && elem.y == pos.y); })
-                                }
+                        if (availableCell.classList.contains("used")) {
+                            var pos = this.availableMovements[i];
+                            this.deadEnds = this.deadEnds.filter(function(elem) { return !(elem.x == pos.x && elem.y == pos.y); })
+
+                            if (this.hints.deadEnd) {
+                                availableCell.classList.remove("dead-end");
                             }
                         }
                     }
@@ -285,29 +287,31 @@
                         var availableCell = this.getCell(this.availableMovements[i]);
                         availableCell.classList.add("available");
 
-                        if (this.hints.movementPriority || this.hints.criticalMovement || this.hints.deadEnd) {
-                            var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
+                        var nextAvailableMovements = this.getValidMovementsFrom(this.availableMovements[i]);
 
-                            if (this.hints.movementPriority) {
-                                availableCell.textContent = nextAvailableMovements.length;
-                            }
+                        if (this.hints.movementPriority) {
+                            availableCell.textContent = nextAvailableMovements.length;
+                        }
 
-                            if (this.hints.criticalMovement) {
-                                if (nextAvailableMovements.length <= 1)
-                                    availableCell.classList.add("critical");
-                            }
+                        if (this.hints.criticalMovement) {
+                            if (nextAvailableMovements.length <= 1)
+                                availableCell.classList.add("critical");
+                        }
+
+                        if (nextAvailableMovements.length >= 1) {
+                            var pos = this.availableMovements[i];
+                            this.deadEnds = this.deadEnds.filter(function(elem) { return !(elem.x == pos.x && elem.y == pos.y); })
 
                             if (this.hints.deadEnd) {
-                                if (nextAvailableMovements.length >= 1) {
-                                    availableCell.classList.remove("dead-end");
-                                    var pos = this.availableMovements[i];
-                                    this.deadEnds = this.deadEnds.filter(function(elem) { return !(elem.x == pos.x && elem.y == pos.y); })
-                                }
+                                availableCell.classList.remove("dead-end");
+                            }
+                        }
 
-                                if (nextAvailableMovements.length == 0) {
-                                    availableCell.classList.add("dead-end");
-                                    this.deadEnds.push(this.availableMovements[i]);
-                                }
+                        if (nextAvailableMovements.length == 0) {
+                            this.deadEnds.push(this.availableMovements[i]);
+
+                            if (this.hints.deadEnd) {
+                                availableCell.classList.add("dead-end");
                             }
                         }
                     }
@@ -562,7 +566,17 @@
                     else {
                         var nextMove = currentOptions.pop();
                         this.board.move(this.board.getCell(nextMove), nextMove);
-                        this.options.push(this.board.availableMovements.slice());
+                        var newOptions = this.board.availableMovements.slice()
+
+                        if (this.strategies.sortOptions) {
+                            newOptions.sort(function(pos1, pos2) {
+                                var numOptions1 = this.board.getValidMovementsFrom(pos1).length;
+                                var numOptions2 = this.board.getValidMovementsFrom(pos2).length;
+                                return numOptions2 - numOptions1;
+                            });
+                        }
+
+                        this.options.push(newOptions);
 
                         if (this.board.horsePath.length == (this.board.boardSize * this.board.boardSize)) {
                             this.stop();
