@@ -103,9 +103,11 @@
 
             <section>
                 <h1>Automático</h1>
-                <button type="button" id="start">Começar</button>
-                <button type="button" id="stop">Parar</button>
+                <button type="button" id="begin">Começar</button>
+                <button type="button" id="start">Continuar</button>
                 <button type="button" id="step">Passo</button>
+                <button type="button" id="stop">Interromper</button>
+                <button type="button" id="end">Terminar</button>
             </section>
             <section>
                 <h1>Dicas</h1>
@@ -401,6 +403,14 @@
                     this.drawAvailableMovements();
                     this.drawPath();
                 };
+
+                this.setState = function(state) {
+                    this.reset();
+
+                    for (var i = 0; i < state.length; ++i) {
+                        this.move(this.getCell(state[i]), state[i]);
+                    }
+                };
             }
 
             function Finder(board) {
@@ -410,42 +420,77 @@
 
                 this.delay = 200;
                 this.running = false;
+                this.inProgress = false;
+
+                this.beginState;
 
                 this.reset = function() {
                     this.board.reset();
                     this.options = [this.board.availableMovements.slice()];
                 };
 
+                this.begin = function() {
+                    if (this.inProgress == true)
+                        return;
+
+                    this.inProgress = true;
+                    this.board.block = true;
+                    this.beginState = this.board.horsePath.slice();
+
+                    this.start()
+                }
+
                 this.start = function() {
                     if (this.running == true)
                         return;
 
-                    this.reset();
                     this.board.horseElem.style.transitionDuration = (this.delay / 1000) + "s";
                     this.board.pathElem.style.transitionDuration = (this.delay / 1000) + "s";
 
                     this.running = true;
-                    this.board.block = true;
                     this.stepInterval();
                 };
 
+                this.step = function() {
+                    if (this.inProgress == false || this.running == true)
+                        return;
+
+                    this.stepFunction();
+                }
+
                 this.stop = function() {
+                    if (this.running == false)
+                        return;
+
                     this.running = false;
-                    this.board.block = false;
 
                     this.board.horseElem.style.transitionDuration = "";
                     this.board.pathElem.style.transitionDuration = "";
                 };
 
+                this.end = function() {
+                    if (this.inProgress == false)
+                        return;
+
+                    this.stop();
+
+                    this.board.setState(this.beginState);
+                    this.board.block = false;
+                    this.inProgress = false;
+                }
+
                 this.stepInterval = function() {
                     if (this.running)
                     {
-                        this.step();
+                        this.stepFunction();
                         setTimeout(() => { this.stepInterval() }, this.delay);
                     }
                 };
 
-                this.step = function() {
+                this.stepFunction = function() {
+                    if (this.inProgress == false)
+                        return;
+
                     if (this.options.length <= 0) {
                         this.stop();
                         return;
@@ -476,9 +521,11 @@
             var resetElem = document.getElementById("reset");
             var undoElem = document.getElementById("undo");
 
+            var beginElem = document.getElementById("begin");
             var startElem = document.getElementById("start");
-            var stopElem = document.getElementById("stop");
             var stepElem = document.getElementById("step");
+            var stopElem = document.getElementById("stop");
+            var endElem = document.getElementById("end");
 
             var movementPriorityElem = document.getElementById("movement-priority");
             var criticalMovementElem = document.getElementById("critical-movement");
@@ -500,9 +547,11 @@
                     board.undo();
             });
 
+            beginElem.addEventListener("click", finder.begin.bind(finder));
             startElem.addEventListener("click", finder.start.bind(finder));
-            stopElem.addEventListener("click", finder.stop.bind(finder));
             stepElem.addEventListener("click", finder.step.bind(finder));
+            stopElem.addEventListener("click", finder.stop.bind(finder));
+            endElem.addEventListener("click", finder.end.bind(finder));
 
             movementPriorityElem.addEventListener("click", function() {
                 if (board.newHints.movementPriority) {
